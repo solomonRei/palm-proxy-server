@@ -1,0 +1,83 @@
+scheme: http
+hostname: localhost
+reverse-proxy-port: 7080
+
+react:
+  port: 4203
+  prefix: /react-ui
+  uri: ${scheme}://${hostname}:${react.port}${react.prefix}
+
+authorization-server:
+  port: 9090
+  prefix: /auth
+  uri: ${scheme}://${hostname}:${authorization-server.port}
+
+bff:
+  port: 7081
+  prefix: /bff
+  uri: ${scheme}://${hostname}:${bff.port}
+
+server:
+  port: ${reverse-proxy-port}
+  ssl:
+    enabled: false
+
+spring:
+  cloud:
+    gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      routes:
+        - id: react-ui
+          uri: ${react.uri}
+          predicates:
+            - Path=${react.prefix}/**
+        - id: authorization-server
+          uri: ${authorization-server.uri}
+          predicates:
+            - Path=${authorization-server.prefix}/**
+          filters:
+            - StripPrefix=1
+        - id: bff
+          uri: ${bff.uri}
+          predicates:
+            - Path=${bff.prefix}/**
+          filters:
+            - StripPrefix=1
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - ${scheme}://${hostname}:4200
+              - ${scheme}://${hostname}:7080
+              - http://smed:7080
+            allowedMethods:
+              - "*"
+            allowedHeaders:
+              - "*"
+            exposedHeaders:
+              - "*"
+            allowCredentials: true
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+logging:
+  level:
+    root: TRACE
+    org:
+      springframework:
+        boot: TRACE
+        web: TRACE
