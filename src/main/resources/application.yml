@@ -74,10 +74,10 @@ management:
     readinessstate:
       enabled: true
 
-logging:
-  level:
-    root: TRACE
-    org:
-      springframework:
-        boot: TRACE
-        web: TRACE
+#logging:
+#  level:
+#    root: TRACE
+#    org:
+#      springframework:
+#        boot: TRACE
+#        web: TRACE
